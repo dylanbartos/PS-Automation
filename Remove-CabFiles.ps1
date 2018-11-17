@@ -1,4 +1,3 @@
-﻿#Dylan Bartos
 #Method for automagically removing old cab files
 #Warning: This is provided under no warranty, you assume full liability.
 #Script deletes all files matching 'cab*' in the 'C:\Windows\Temp directory that were created greater than 1 week ago (AddDays(-7)). This is permanent.
