@@ -1,0 +1,3 @@
+username,password,fullname,comment,canChangePassword,forceChangePasswordAtLogon,expires,passwordRequired,administrator
+LocalAdmin,Pa$$w0rd,Local Administrator,Local Administrator Account,Yes,No,Never,Yes,Yes
+Staff,,Staff Member,General Staff,Yes,Yes,Never,No,Yes
