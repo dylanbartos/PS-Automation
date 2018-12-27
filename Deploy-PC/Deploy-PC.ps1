@@ -1,5 +1,6 @@
 ﻿#PC Deployment Script
 #Dylan Bartos
+#v1.0
 
 [xml]$global:xml = Get-Content "$PSSCriptRoot\Deploy-PC.config"
 $fxml = $global:xml.Functions
