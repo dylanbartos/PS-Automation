@@ -119,10 +119,11 @@ Function UserAccount {
     
     Log "Creating user accounts from csv file..."
     Foreach ($user in $global:csv) {
-        If ($user.password = ""){
+        If ($user.password -eq ""){
             New-LocalUser -Name $user.username -NoPassword -AccountNeverExpires -FullName $user.fullname -Description $user.comment 
+        } Elseif ($user.password -ne "") {
+            New-LocalUser -Name $user.username -Password $(ConvertTo-SecureString -String $user.password -AsPlainText -Force) -AccountNeverExpires -FullName $user.fullname -Description $user.comment
         }
-        New-LocalUser -Name $user.username -Password (ConvertTo-SecureString -String $user.password -AsPlainText -Force) -AccountNeverExpires -FullName $user.fullname -Description $user.comment
         If ($user.administrator = "Yes"){
             Net LocalGroup Administrators $user.username /add
         } 
