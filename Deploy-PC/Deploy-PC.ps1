@@ -5,49 +5,6 @@
 [xml]$global:xml = Get-Content "$PSSCriptRoot\Deploy-PC.config"
 $fxml = $global:xml.Functions
 
-#Gather secure credentials for FileCopy
-If ($fxml.FileCopy.Password.Enabled -eq "1"){
-    If ($fxml.FileCopy.Password -eq ""){
-        Log "Deploy-PC.config is missing FileCopy password. Please enter valid credentials to access UNCPath."
-        $global:cred = Get-Credential
-    }Else{
-        $passw = ConvertTo-SecureString $fxml.FileCopy.Password -AsPlainText -Force
-        try{
-            $global:cred = New-Object System.Management.Automation.PSCredential($fxml.FileCopy.Username, $passw) -ErrorAction Stop
-        }catch{
-            Log "Deploy-PC.config is missing FileCopy username. Please enter valid credentials to access UNCPath."
-            Exit
-        }
-    }
-}
-
-#Import UserAccount.csv for UserAccount
-If ($fxml.UserAccount.Enabled -eq "1"){
-    Try {
-        Log "Importing CSV file for UserAccount"
-        $global:csv = Import-Csv -Path $fxml.UserAccount.CsvFilePath -ErrorAction Stop
-    }Catch{
-        Write-Error; Log "Unable to import csv file ($($fxml.UserAccount.CsvFilePath))"
-        Exit
-    }
-}
-
-#Check that AutoLogon is filled out properly
-If ($fxml.AutoLogon.Enabled -eq "1"){
-    If ($fxml.AutoLogon.Username -eq ""){
-        Write-Error; Log "AutoLogon.Username is blank, exiting."
-        Exit
-    }
-    If ($fxml.AutoLogon.Password -eq ""){
-        Write-Error; Log "AutoLogon.Password is blank, exiting."
-        Exit
-    }
-    If ($fxml.AutoLogon.ScriptPath -eq ""){
-        Write-Error; Log "AutoLogon.ScriptPath is blank, exiting."
-        Exit
-    }
-}
-
 Function Main {
     $global:functions = @{}
 
@@ -197,7 +154,7 @@ Function Software {
     If ($fxml.Software.ChocoUpdateAtBoot -eq "1"){
         Log "Creating Scheduled Task for ChocoUpdateAtBoot..."
         $trigger = New-JobTrigger -AtStartup -RandomDelay 00:15:00
-        $action = New-ScheduledTaskAction -Execute "Powershell.exe" -Argument "-NoProfile -WindowStyle Hidden" -Command "choco upgrade all -y"
+        $action = New-ScheduledTaskAction -Execute "Powershell.exe -Command 'choco upgrade all -y'" -Argument "-NoProfile -WindowStyle Hidden" 
         Register-ScheduledJob -Action $action -Trigger $trigger -TaskName "Chocolatey Upgrade All" -Description "Upgrade check of all installed chocolatey packages at startup."
     }
 
@@ -306,7 +263,7 @@ Function Log {
         [Parameter(Mandatory=$True, Position=0)] [string] $text
     )
     Write-Host $text
-    Add-Content "C:\AutomateTools\Setup.log" "$(Get-Date) $text"
+    Add-Content $fxml.Settings.LogPath "$(Get-Date) $text"
 }
 
 Function Write-Complete {
@@ -326,4 +283,48 @@ Function Write-Error {
     Write-Host "ERROR" -NoNewline -ForegroundColor RED
     Write-Host "] " -NoNewline
 }
+
+#Gather secure credentials for FileCopy
+If ($fxml.FileCopy.Password.Enabled -eq "1"){
+    If ($fxml.FileCopy.Password -eq ""){
+        Log "Deploy-PC.config is missing FileCopy password. Please enter valid credentials to access UNCPath."
+        $global:cred = Get-Credential
+    }Else{
+        $passw = ConvertTo-SecureString $fxml.FileCopy.Password -AsPlainText -Force
+        try{
+            $global:cred = New-Object System.Management.Automation.PSCredential($fxml.FileCopy.Username, $passw) -ErrorAction Stop
+        }catch{
+            Log "Deploy-PC.config is missing FileCopy username. Please enter valid credentials to access UNCPath."
+            Exit
+        }
+    }
+}
+
+#Import UserAccount.csv for UserAccount
+If ($fxml.UserAccount.Enabled -eq "1"){
+    Try {
+        Log "Importing CSV file for UserAccount"
+        $global:csv = Import-Csv -Path $fxml.UserAccount.CsvFilePath -ErrorAction Stop
+    }Catch{
+        Write-Error; Log "Unable to import csv file ($($fxml.UserAccount.CsvFilePath))"
+        Exit
+    }
+}
+
+#Check that AutoLogon is filled out properly
+If ($fxml.AutoLogon.Enabled -eq "1"){
+    If ($fxml.AutoLogon.Username -eq ""){
+        Write-Error; Log "AutoLogon.Username is blank, exiting."
+        Exit
+    }
+    If ($fxml.AutoLogon.Password -eq ""){
+        Write-Error; Log "AutoLogon.Password is blank, exiting."
+        Exit
+    }
+    If ($fxml.AutoLogon.ScriptPath -eq ""){
+        Write-Error; Log "AutoLogon.ScriptPath is blank, exiting."
+        Exit
+    }
+}
+
 Main
