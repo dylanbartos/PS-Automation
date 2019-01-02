@@ -2,6 +2,8 @@
 #Dylan Bartos
 #v1.0
 
+Start-Transcript -Path "C:\Deploy-PC-Full.log"
+
 [xml]$global:xml = Get-Content "$PSSCriptRoot\Deploy-PC.config"
 $fxml = $global:xml.Functions
 
@@ -117,7 +119,10 @@ Function UserAccount {
     
     Log "Creating user accounts from csv file..."
     Foreach ($user in $global:csv) {
-        Net User $user.username /ADD /FULLNAME:$user.fullname /COMMENT:$user.comment /ACTIVE:Yes /PASSWORDCHG:$user.canChangePassword /LOGONPASSWORDCHG:$user.forceChangePasswordAtLogon /EXPIRES:$user.expires /PASSWORDREQ:$user.passwordRequired
+        If ($user.password = ""){
+            New-LocalUser -Name $user.username -NoPassword -AccountNeverExpires -FullName $user.fullname -Description $user.comment 
+        }
+        New-LocalUser -Name $user.username -Password (ConvertTo-SecureString -String $user.password -AsPlainText -Force) -AccountNeverExpires -FullName $user.fullname -Description $user.comment
         If ($user.administrator = "Yes"){
             Net LocalGroup Administrators $user.username /add
         } 
@@ -155,7 +160,7 @@ Function Software {
         Log "Creating Scheduled Task for ChocoUpdateAtBoot..."
         $trigger = New-JobTrigger -AtStartup -RandomDelay 00:15:00
         $action = New-ScheduledTaskAction -Execute "Powershell.exe -Command 'choco upgrade all -y'" -Argument "-NoProfile -WindowStyle Hidden" 
-        Register-ScheduledJob -Action $action -Trigger $trigger -TaskName "Chocolatey Upgrade All" -Description "Upgrade check of all installed chocolatey packages at startup."
+        Register-ScheduledTask -Action $action -Trigger $trigger -TaskName "Chocolatey Upgrade All" -Description "Upgrade check of all installed chocolatey packages at startup."
     }
 
     #Install software
@@ -284,6 +289,9 @@ Function Write-Error {
     Write-Host "] " -NoNewline
 }
 
+###Startup Prereq Checks###
+Log "#############Deploy-PC Started!#############"
+
 #Gather secure credentials for FileCopy
 If ($fxml.FileCopy.Password.Enabled -eq "1"){
     If ($fxml.FileCopy.Password -eq ""){
@@ -313,6 +321,7 @@ If ($fxml.UserAccount.Enabled -eq "1"){
 
 #Check that AutoLogon is filled out properly
 If ($fxml.AutoLogon.Enabled -eq "1"){
+    Log "Verifying AutoLogon account credentials"
     If ($fxml.AutoLogon.Username -eq ""){
         Write-Error; Log "AutoLogon.Username is blank, exiting."
         Exit
