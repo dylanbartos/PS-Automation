@@ -71,7 +71,7 @@ Function Main {
         $fxml.AutoLogon.AutoAdminLogon = "0"
         AutoLogon
         Write-Complete; Log "Computer deployed! Check for [ERRORS]."
-        Restart-Computer -Force-Confirm:$false
+        Restart-Computer -Force -Confirm:$false
     }
 }
 
@@ -156,14 +156,6 @@ Function Software {
         Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
     }
     
-    #Register upgrade task
-    If ($fxml.Software.ChocoUpdateAtBoot -eq "1"){
-        Log "Creating Scheduled Task for ChocoUpdateAtBoot..."
-        $trigger = New-JobTrigger -AtStartup -RandomDelay 00:15:00
-        $action = New-ScheduledTaskAction -Execute "Powershell.exe -Command 'choco upgrade all -y'" -Argument "-NoProfile -WindowStyle Hidden" 
-        Register-ScheduledTask -Action $action -Trigger $trigger -TaskName "Chocolatey Upgrade All" -Description "Upgrade check of all installed chocolatey packages at startup."
-    }
-
     #Install software
     Log "Installing software packages..."
     If ($fxml.Software.AdobeReader -eq "1") {choco install adobereader -y}
