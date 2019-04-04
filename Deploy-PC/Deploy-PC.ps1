@@ -249,6 +249,10 @@ Function AutoLogon {
     Log "AutoLogon"
     $RegPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
     $RunPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce"
+    If ($fxml.AutoLogon.AutoAdminLogon -eq "0"){
+	Set-ItemProperty $RegPath "AutoAdminLogon" -Value $fxml.AutoLogon.AutoAdminLogon -type String
+        Return
+    }
     Set-ItemProperty $RegPath "AutoAdminLogon" -Value $fxml.AutoLogon.AutoAdminLogon -type String
     Set-ItemProperty $RegPath "DefaultUsername" -Value $fxml.AutoLogon.Username -type String
     Set-ItemProperty $RegPath "DefaultPassword" -Value $fxml.AutoLogon.Password -type String
