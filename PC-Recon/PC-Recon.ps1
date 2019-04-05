@@ -126,3 +126,5 @@ $regArray = $($regArray | Sort-Object)
 foreach ($software in $regArray){
     Add-Content -Path $outFile $software
 }
+
+Start-Process -FilePath "C:\PC-Recon\Output.txt"

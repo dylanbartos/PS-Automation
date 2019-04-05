@@ -1,0 +1,1 @@
+powershell.exe ".\PC-Recon.ps1"
