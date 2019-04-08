@@ -36,6 +36,17 @@ foreach($user in $(Get-WmiObject -Class Win32_UserAccount -Filter "LocalAccount=
 Add-Content -Path $outFile "------------------------------------------------------------"
 Add-Content -Path $outfile ""
 
+Add-Content -Path $outFile "OUTLOOK FILES"
+Add-Content -Path $outFile "------------------------------------------------------------"
+foreach ($result in $(Get-ChildItem -Path C:\Users -Filter "*.ost" -Recurse -ErrorAction SilentlyContinue)){
+    Add-Content -Path $outFile "$($result.DirectoryName)\$result"
+}
+foreach ($result in $(Get-ChildItem -Path C:\Users -Filter "*.pst" -Recurse -ErrorAction SilentlyContinue)){
+    Add-Content -Path $outFile "$($result.DirectoryName)\$result"
+}
+Add-Content -Path $outFile "------------------------------------------------------------"
+Add-Content -Path $outfile ""
+
 Add-Content -Path $outFile "NOAH"
 Add-Content -Path $outFile "------------------------------------------------------------"
 
