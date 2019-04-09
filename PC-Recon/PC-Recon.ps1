@@ -72,16 +72,22 @@ Add-Content -Path $outFile "----------------------------------------------------
 Add-Content -Path $outfile ""
 Add-Content -Path $outfile "CONNECTED NETWORK ADAPTERS"
 Add-Content -Path $outFile "------------------------------------------------------------"
-foreach($adapter in $(Get-NetAdapter -Physical | Where-Object -Property "Status" -EQ "Up" | Select-Object -Property InterfaceDescription)){
-    Add-Content -Path $outFile $adapter.InterfaceDescription
+$ips = Get-NetIPAddress | Where-Object {($_.AddressState -eq "Preferred") -and ($_.AddressFamily -eq "IPv4")}
+foreach($adapter in $(Get-NetAdapter -Physical | Where-Object -Property "Status" -EQ "Up")){
+    foreach ($ip in $ips){
+        If (($ip.ifindex -eq $adapter.ifIndex) -and ($ip.IPv4Address -notlike "169.*") -and ($ip.IPv4Address -notlike "127.*")){
+            Add-Content -Path $outFile "$($adapter.InterfaceDescription) = $($ip.IPv4Address), $($ip.SuffixOrigin)"
+        }
+    }
 }
 Add-Content -Path $outFile "------------------------------------------------------------"
 Add-Content -Path $outfile ""
 Add-Content -Path $outFile "DISCONNECTED NETWORK ADAPTERS"
 Add-Content -Path $outFile "------------------------------------------------------------"
-foreach($adapter in $(Get-NetAdapter -Physical | Where-Object -Property "Status" -EQ "Disconnected" | Select-Object -Property InterfaceDescription)){
+foreach($adapter in $(Get-NetAdapter -Physical | Where-Object -Property "Status" -EQ "Disconnected")){
     Add-Content -Path $outFile $adapter.InterfaceDescription
 }
+
 Add-Content -Path $outFile "------------------------------------------------------------"
 Add-Content -Path $outfile ""
 Add-Content -Path $outfile "CONNECTED DRIVES"
