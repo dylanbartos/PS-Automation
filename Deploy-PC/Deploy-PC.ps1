@@ -1,6 +1,6 @@
-﻿#PC Deployment Script
+#PC Deployment Script
 #Dylan Bartos
-#v1.0
+#v1.1
 
 Start-Transcript -Path "C:\Deploy-PC-Full.log"
 
@@ -123,6 +123,7 @@ Function UserAccount {
             New-LocalUser -Name $user.username -NoPassword -AccountNeverExpires -FullName $user.fullname -Description $user.comment 
         } Elseif ($user.password -ne "") {
             New-LocalUser -Name $user.username -Password $(ConvertTo-SecureString -String $user.password -AsPlainText -Force) -AccountNeverExpires -FullName $user.fullname -Description $user.comment
+            wmic useraccount where "name='$($user.username)'" set PasswordExpires=False
         }
         If ($user.administrator = "Yes"){
             Net LocalGroup Administrators $user.username /add
@@ -173,6 +174,12 @@ Function Software {
     If ($fxml.Software.NotepadPlusPlus -eq "1") {choco install notepadplusplus -y}
     If ($fxml.Software.SysInternals -eq "1") {choco install sysinternals -y}
     If ($fxml.Software.ProcMon -eq "1") {choco install procmon -y}
+    If ($fxml.Software.VCRedist2010 -eq "1") {choco install vcredist2010 -y}
+    If ($fxml.Software.DotNet35 -eq "1") {choco install dotnet3.5 -y}
+    If ($fxml.Software.VCRedist20152019 -eq "1") {choco install vcredist140 -y}
+    If ($fxml.Software.MsVisualCPlusPlus2012 -eq "1") {choco install msvisualcplusplus2012-redist -y}
+    If ($fxml.Software.MsVisualCPlusPlus2013 -eq "1") {choco install msvisualcplusplus2013-redist -y}
+    If ($fxml.Software.VCRedist2008 -eq "1") {choco install vcredist2008 -y}
     
     Write-Complete; Log "Software packages installed."
     Return
@@ -193,9 +200,16 @@ Function ComputerName {
     If (($Manuf -like '*Dell*') -and ($fxml.ComputerName.SetToDellServiceTag -eq "1")) {
         $tag = Get-WmiObject win32_SystemEnclosure | Select -ExpandProperty serialnumber
         $comp = Get-ChildItem -Path Env:\ComputerName | Select -ExpandProperty Value
+        $chassistype = $(Get-WmiObject win32_SystemEnclosure).ChassisTypes
         If ($tag -ne $comp) {
-            Log "Setting ComputerName to service tag: $tag"
-            Rename-Computer -NewName $tag
+            If ($chassistype -eq 9 -OR $chassistype -eq 10 -OR $chassistype -eq 14){
+                Log "Setting ComputerName to service tag: $tag-LT"
+                Rename-Computer -NewName "$tag-LT"
+            }
+            If ($chassistype -ne 9 -AND $chassistype -ne 10 -AND $chassistype -ne 14){
+                Log "Setting ComputerName to service tag: $tag"
+                Rename-Computer -NewName "$tag"
+            }
         }
     } Else {
         Write-Error; Log "Manufacturer not = Dell OR SetToDellServiceTag is not = 1."
