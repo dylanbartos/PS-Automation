@@ -53,16 +53,16 @@ Function Main{
             If ($Cycle -eq "1"){
                 Remove-Item -Path "$PSScriptRoot\WindowsUpdates.txt" -Confirm:$false
                 WindowsUpdates
-                Restart-Computer
-		ping 127.0.0.1 -n 10
+                Restart-Computer -Force
+                Exit 
             }Else{
                 $Cycle = $Cycle - 1
                 Log "Decrease Cycle from $($cycle + 1) to $cycle"
                 Set-Content -Path "$PSScriptRoot\WindowsUpdates.txt" -Value "$Cycle"
                 Set-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\RunOnce" "Deploy-PC" -Value "$PSScriptRoot\Deploy-PC.bat" -type String
                 WindowsUpdates
-		Restart-Computer
-		ping 127.0.0.1 -n 10
+		        Restart-Computer -Force
+		        Exit
             }
         }
 
@@ -125,6 +125,7 @@ Function Main{
     If ($xml.WindowsUpdates.Enabled -eq "1"){
         WindowsUpdates
         Restart-Computer -Force
+        Exit
     }
 }
 
