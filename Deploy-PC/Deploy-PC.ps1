@@ -261,7 +261,7 @@ Function Software {
         ForEach ($package in $packages){
             try{
                 Log "Attempting to remove $package."
-                Remove-AppxPackage (Get-AppxPackage -AllUsers|Where{$_.Name -match "$package"}).PackageFullName
+                Remove-AppxPackage (Get-AppxPackage -AllUsers|Where-Object{$_.Name -match "$package"}).PackageFullName
             }catch{
                 Log $error[0].Exception.Message -Error
             }
