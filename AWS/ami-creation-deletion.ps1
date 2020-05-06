@@ -50,6 +50,7 @@ If ($Debug -eq $True){
         $NewTag.Key = "Name"
         $NewTag.Value = "$($_.Name)_AutoAmi-$Guid"
         New-EC2Tag -Resource $NewAMI -Tag $NewTag
+        Start-Sleep -Seconds 2
 
         $AMIs = Get-EC2Image -Filters @{Name="description"; Values="Automatic AMI created for $($_.InstanceID)"} | Sort-Object -Property CreationDate -Descending
         #Tag snapshots
