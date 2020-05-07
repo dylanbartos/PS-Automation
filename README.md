@@ -1,3 +1,6 @@
+# AWS
+Collection of Lambda functions built using PowerShell AWSTools - all open source! 
+
 # PC Deployment
 An XML configurable script to automate pc deployments including windows updates, software installation, user account creation, and more!
 
